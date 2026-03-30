@@ -420,6 +420,7 @@ A GitHub Free Plan account cannot use the GitHub Pages in a private repository. 
 
 We can set the `force_orphan: true` option.
 This allows you to make your publish branch with only the latest commit.
+When `destination_dir` is set, files outside that subdirectory on the publish branch are kept in the new orphaned tree.
 
 ```yaml
 - name: Deploy

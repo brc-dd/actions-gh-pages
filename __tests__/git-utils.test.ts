@@ -23,6 +23,11 @@ async function createTestDir(name: string): Promise<string> {
   return await getWorkDirName(`${unixTime}_${name}`);
 }
 
+function writeFixtureFile(filePath: string, content: string): void {
+  fs.mkdirSync(path.dirname(filePath), {recursive: true});
+  fs.writeFileSync(filePath, content);
+}
+
 beforeEach(() => {
   jest.resetModules();
   process.env['GITHUB_ACTOR'] = 'default-octocat';
@@ -151,6 +156,75 @@ describe('setRepo()', () => {
     await expect(setRepo(inps, remoteURL, workDir)).rejects.toThrow(
       'destination_dir should be a relative path'
     );
+  });
+
+  test('preserve sibling directories for force_orphan deployments to destination_dir', async () => {
+    const workspace = await createTestDir('workspace');
+    const publishDir = path.join(workspace, 'public');
+    const remoteRepo = await createTestDir('remote');
+    const workDir = await createTestDir('work');
+
+    process.env['GITHUB_WORKSPACE'] = workspace;
+    try {
+      await createDir(workspace);
+      await createDir(publishDir);
+      await createDir(remoteRepo);
+
+      writeFixtureFile(path.join(publishDir, 'index.html'), 'new index');
+      writeFixtureFile(path.join(publishDir, 'assets/app.js'), 'console.log("new");');
+
+      process.chdir(remoteRepo);
+      await exec.exec('git', ['init']);
+      await exec.exec('git', ['config', 'user.name', 'octocat']);
+      await exec.exec('git', ['config', 'user.email', 'octocat@github.com']);
+
+      writeFixtureFile(path.join(remoteRepo, 'shared/keep.txt'), 'keep me');
+      writeFixtureFile(path.join(remoteRepo, 'docs/old.html'), 'old page');
+      writeFixtureFile(path.join(remoteRepo, 'docs/assets/old.js'), 'old asset');
+
+      await exec.exec('git', ['add', '--all']);
+      await exec.exec('git', ['commit', '-m', 'seed gh-pages']);
+      await exec.exec('git', ['branch', '-M', 'gh-pages']);
+
+      const inps: Inputs = {
+        DeployKey: '',
+        GithubToken: '',
+        PersonalToken: '',
+        PublishBranch: 'gh-pages',
+        PublishDir: 'public',
+        DestinationDir: 'docs',
+        ExternalRepository: '',
+        AllowEmptyCommit: false,
+        KeepFiles: false,
+        ForceOrphan: true,
+        UserName: '',
+        UserEmail: '',
+        CommitMessage: '',
+        FullCommitMessage: '',
+        TagName: '',
+        TagMessage: '',
+        DisableNoJekyll: false,
+        CNAME: '',
+        ExcludeAssets: '.github'
+      };
+
+      await setRepo(inps, remoteRepo, workDir);
+
+      expect(fs.existsSync(path.join(workDir, 'shared/keep.txt'))).toBeTruthy();
+      expect(fs.existsSync(path.join(workDir, 'docs/index.html'))).toBeTruthy();
+      expect(fs.existsSync(path.join(workDir, 'docs/assets/app.js'))).toBeTruthy();
+      expect(fs.existsSync(path.join(workDir, 'docs/old.html'))).toBeFalsy();
+      expect(fs.existsSync(path.join(workDir, 'docs/assets/old.js'))).toBeFalsy();
+
+      const result = await exec.exec('git', ['rev-parse', '--verify', 'HEAD'], {
+        cwd: workDir,
+        ignoreReturnCode: true
+      });
+      expect(result).toBe(128);
+    } finally {
+      rm('-rf', workspace, remoteRepo, workDir);
+      delete process.env['GITHUB_WORKSPACE'];
+    }
   });
 });
 

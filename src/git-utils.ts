@@ -14,6 +14,13 @@ export async function createBranchForce(branch: string): Promise<void> {
   return;
 }
 
+async function recreateBranchAsOrphan(branch: string): Promise<void> {
+  const orphanBranch = `${branch}-orphan-${Date.now()}`;
+  await exec.exec('git', ['checkout', '--orphan', orphanBranch]);
+  await exec.exec('git', ['branch', '-D', branch]);
+  await exec.exec('git', ['branch', '-m', branch]);
+}
+
 export function getServerUrl(): URL {
   return new URL(process.env['GITHUB_SERVER_URL'] || 'https://github.com');
 }
@@ -81,7 +88,7 @@ export async function setRepo(inps: Inputs, remoteURL: string, workDir: string):
   })();
 
   core.info(`[INFO] ForceOrphan: ${inps.ForceOrphan}`);
-  if (inps.ForceOrphan) {
+  if (inps.ForceOrphan && inps.DestinationDir === '') {
     await createDir(destDir);
     core.info(`[INFO] chdir ${workDir}`);
     process.chdir(workDir);
@@ -123,6 +130,13 @@ export async function setRepo(inps: Inputs, remoteURL: string, workDir: string):
       core.info(`[INFO] chdir ${workDir}`);
       process.chdir(workDir);
       await copyAssets(publishDir, destDir, inps.ExcludeAssets);
+
+      if (inps.ForceOrphan) {
+        core.info(
+          `[INFO] recreate ${inps.PublishBranch} as an orphan branch while preserving non-deployed paths`
+        );
+        await recreateBranchAsOrphan(inps.PublishBranch);
+      }
       return;
     } else {
       throw new Error(`Failed to clone remote branch ${inps.PublishBranch}`);

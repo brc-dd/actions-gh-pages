@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [4.2.0](https://github.com/peaceiris/actions-gh-pages/compare/v4.1.0...v4.2.0) (2026-03-30)
+
+
+### chore
+
+* bump node to v24 ([510343c](https://github.com/peaceiris/actions-gh-pages/commit/510343ca4ece439ca958299c47a2622aac2da34f))
+
+
+
 # 4.1.0 (2026-03-30)
 
 

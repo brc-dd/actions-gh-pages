@@ -70,22 +70,14 @@ export function setGithubToken(
   githubToken: string,
   publishRepo: string,
   publishBranch: string,
-  externalRepository: string,
   ref: string,
   eventName: string
 ): string {
-  core.info('[INFO] setup GITHUB_TOKEN');
+  core.info('[INFO] setup github_token');
 
   core.debug(`ref: ${ref}`);
   core.debug(`eventName: ${eventName}`);
   let isProhibitedBranch = false;
-
-  if (externalRepository) {
-    throw new Error(`\
-The generated GITHUB_TOKEN (github_token) does not support to push to an external repository.
-Use deploy_key or personal_token.
-`);
-  }
 
   if (eventName === 'push') {
     isProhibitedBranch = ref.match(new RegExp(`^refs/heads/${publishBranch}$`)) !== null;
@@ -98,11 +90,6 @@ This operation is prohibited to protect your contents
   }
 
   return `https://x-access-token:${githubToken}@${getServerUrl().host}/${publishRepo}.git`;
-}
-
-export function setPersonalToken(personalToken: string, publishRepo: string): string {
-  core.info('[INFO] setup personal access token');
-  return `https://x-access-token:${personalToken}@${getServerUrl().host}/${publishRepo}.git`;
 }
 
 export function getPublishRepo(externalRepository: string, owner: string, repo: string): string {
@@ -125,16 +112,7 @@ export async function setTokens(inps: Inputs): Promise<string> {
       const context = github.context;
       const ref = context.ref;
       const eventName = context.eventName;
-      return setGithubToken(
-        inps.GithubToken,
-        publishRepo,
-        inps.PublishBranch,
-        inps.ExternalRepository,
-        ref,
-        eventName
-      );
-    } else if (inps.PersonalToken) {
-      return setPersonalToken(inps.PersonalToken, publishRepo);
+      return setGithubToken(inps.GithubToken, publishRepo, inps.PublishBranch, ref, eventName);
     } else {
       throw new Error('not found deploy key or tokens');
     }

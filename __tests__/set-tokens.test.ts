@@ -1,12 +1,17 @@
-import {getPublishRepo, setPersonalToken, setGithubToken} from '../src/set-tokens';
+import * as github from '@actions/github';
+import {Inputs} from '../src/interfaces';
+import {getPublishRepo, setGithubToken, setTokens} from '../src/set-tokens';
 
 beforeEach(() => {
   jest.resetModules();
+  process.env.GITHUB_REPOSITORY = 'owner/repo';
+  github.context.ref = 'refs/heads/master';
+  github.context.eventName = 'push';
 });
 
-// afterEach(() => {
-
-// });
+afterEach(() => {
+  delete process.env.GITHUB_REPOSITORY;
+});
 
 describe('getPublishRepo()', () => {
   test('return repository name', () => {
@@ -27,7 +32,6 @@ describe('setGithubToken()', () => {
       'GITHUB_TOKEN',
       'owner/repo',
       'gh-pages',
-      '',
       'refs/heads/master',
       'push'
     );
@@ -40,7 +44,6 @@ describe('setGithubToken()', () => {
       'GITHUB_TOKEN',
       'owner/repo',
       'master',
-      '',
       'refs/heads/source',
       'push'
     );
@@ -53,7 +56,6 @@ describe('setGithubToken()', () => {
       'GITHUB_TOKEN',
       'owner/repo',
       'gh-pages',
-      '',
       'refs/heads/gh-pages-base',
       'push'
     );
@@ -66,7 +68,6 @@ describe('setGithubToken()', () => {
         'GITHUB_TOKEN',
         'owner/repo',
         'gh-pages-base',
-        '',
         'refs/heads/gh-pages-base',
         'push'
       );
@@ -75,24 +76,20 @@ describe('setGithubToken()', () => {
 
   test('throw error master to master', () => {
     expect(() => {
-      setGithubToken('GITHUB_TOKEN', 'owner/repo', 'master', '', 'refs/heads/master', 'push');
+      setGithubToken('GITHUB_TOKEN', 'owner/repo', 'master', 'refs/heads/master', 'push');
     }).toThrow('You deploy from master to master');
   });
 
-  test('throw error external repository with GITHUB_TOKEN', () => {
-    expect(() => {
-      setGithubToken(
-        'GITHUB_TOKEN',
-        'owner/repo',
-        'gh-pages',
-        'extOwner/extRepo',
-        'refs/heads/master',
-        'push'
-      );
-    }).toThrow(`\
-The generated GITHUB_TOKEN (github_token) does not support to push to an external repository.
-Use deploy_key or personal_token.
-`);
+  test('return remote url for external repository', () => {
+    const expected = 'https://x-access-token:GITHUB_TOKEN@github.com/extOwner/extRepo.git';
+    const test = setGithubToken(
+      'GITHUB_TOKEN',
+      'extOwner/extRepo',
+      'gh-pages',
+      'refs/heads/master',
+      'push'
+    );
+    expect(test).toMatch(expected);
   });
 
   test('return remote url with GITHUB_TOKEN pull_request', () => {
@@ -101,7 +98,6 @@ Use deploy_key or personal_token.
       'GITHUB_TOKEN',
       'owner/repo',
       'gh-pages',
-      '',
       'refs/pull/29/merge',
       'pull_request'
     );
@@ -109,10 +105,29 @@ Use deploy_key or personal_token.
   });
 });
 
-describe('setPersonalToken()', () => {
-  test('return remote url with personal access token', () => {
-    const expected = 'https://x-access-token:pat@github.com/owner/repo.git';
-    const test = setPersonalToken('pat', 'owner/repo');
-    expect(test).toMatch(expected);
+describe('setTokens()', () => {
+  test('return remote url with github_token for external repository', async () => {
+    const inps: Inputs = {
+      DeployKey: '',
+      GithubToken: 'pat',
+      PublishBranch: 'gh-pages',
+      PublishDir: 'public',
+      DestinationDir: '',
+      ExternalRepository: 'extOwner/extRepo',
+      AllowEmptyCommit: false,
+      KeepFiles: false,
+      ForceOrphan: false,
+      CommitMessage: '',
+      FullCommitMessage: '',
+      TagName: '',
+      TagMessage: '',
+      DisableNoJekyll: false,
+      CNAME: '',
+      ExcludeAssets: '.github'
+    };
+
+    await expect(setTokens(inps)).resolves.toMatch(
+      'https://x-access-token:pat@github.com/extOwner/extRepo.git'
+    );
   });
 });

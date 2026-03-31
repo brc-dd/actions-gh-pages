@@ -45,13 +45,12 @@ So, you can start to deploy immediately without any configuration.
 
 ## Supported Tokens
 
-Three tokens are supported.
+Two authentication methods are supported.
 
 | Token | Private repo | Public repo | Protocol | Setup |
 |---|:---:|:---:|---|---|
-| `github_token` | ✅️ | ✅️ | HTTPS | Unnecessary |
+| `github_token` (`GITHUB_TOKEN` or a PAT) | ✅️ | ✅️ | HTTPS | `GITHUB_TOKEN`: Unnecessary, PAT: Necessary |
 | `deploy_key` | ✅️ | ✅️ | SSH | Necessary |
-| `personal_token` | ✅️ | ✅️ | HTTPS | Necessary |
 
 Notes: Actually, the `GITHUB_TOKEN` works for deploying to GitHub Pages but it has still some limitations.
 For the first deployment, we need to select the `gh-pages` branch or another branch on the repository settings tab.
@@ -63,13 +62,13 @@ See [First Deployment with `GITHUB_TOKEN`](#%EF%B8%8F-first-deployment-with-gith
 
 All Actions runners: Linux (Ubuntu), macOS, and Windows are supported.
 
-| runs-on | `github_token` | `deploy_key` | `personal_token` |
-|---|:---:|:---:|:---:|
-| ubuntu-22.04 | ✅️ | ✅️ | ✅️ |
-| ubuntu-20.04 | ✅️ | ✅️ | ✅️ |
-| ubuntu-latest | ✅️ | ✅️ | ✅️ |
-| macos-latest | ✅️ | ✅️ | ✅️ |
-| windows-latest | ✅️ | (2) | ✅️ |
+| runs-on | `github_token` | `deploy_key` |
+|---|:---:|:---:|
+| ubuntu-22.04 | ✅️ | ✅️ |
+| ubuntu-20.04 | ✅️ | ✅️ |
+| ubuntu-latest | ✅️ | ✅️ |
+| macos-latest | ✅️ | ✅️ |
+| windows-latest | ✅️ | (2) |
 
 2. WIP, See [Issue #87](https://github.com/peaceiris/actions-gh-pages/issues/87)
 
@@ -92,7 +91,6 @@ Note that the `GITHUB_TOKEN` that is created by the runner might not inherently 
 - [Options](#options)
   - [⭐️ Set Runner's Access Token `github_token`](#%EF%B8%8F-set-runners-access-token-github_token)
   - [⭐️ Set SSH Private Key `deploy_key`](#%EF%B8%8F-set-ssh-private-key-deploy_key)
-  - [⭐️ Set Personal Access Token `personal_token`](#%EF%B8%8F-set-personal-access-token-personal_token)
   - [⭐️ Set Another GitHub Pages Branch `publish_branch`](#%EF%B8%8F-set-another-github-pages-branch-publish_branch)
   - [⭐️ Source Directory `publish_dir`](#%EF%B8%8F-source-directory-publish_dir)
   - [⭐️ Deploy to Subdirectory `destination_dir`](#%EF%B8%8F-deploy-to-subdirectory-destination_dir)
@@ -194,9 +192,9 @@ jobs:
 
 ### ⭐️ Set Runner's Access Token `github_token`
 
-**This option is for `GITHUB_TOKEN`, not a personal access token.**
+A GitHub Actions runner automatically creates a `GITHUB_TOKEN` secret to use in your workflow. You can use the `GITHUB_TOKEN` to authenticate in a workflow run, or pass a personal access token to the same `github_token` input when you need broader HTTPS access.
 
-A GitHub Actions runner automatically creates a `GITHUB_TOKEN` secret to use in your workflow. You can use the `GITHUB_TOKEN` to authenticate in a workflow run.
+This action defaults `github_token` to `${{ github.token }}`, so you can omit the input unless you want to pass a different token explicitly.
 
 ```yaml
 - name: Deploy
@@ -208,6 +206,16 @@ A GitHub Actions runner automatically creates a `GITHUB_TOKEN` secret to use in 
 
 For more details about `GITHUB_TOKEN`: [Automatic token authentication - GitHub Docs](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
 
+To use a personal access token, pass it through `github_token`.
+
+```yaml
+- name: Deploy
+  uses: peaceiris/actions-gh-pages@v4
+  with:
+    github_token: ${{ secrets.PERSONAL_TOKEN }}
+    publish_dir: ./public
+```
+
 ### ⭐️ Set SSH Private Key `deploy_key`
 
 Read [Create SSH Deploy Key](#%EF%B8%8F-create-ssh-deploy-key), create your SSH deploy key, and set the `deploy_key` option like the following.
@@ -217,18 +225,6 @@ Read [Create SSH Deploy Key](#%EF%B8%8F-create-ssh-deploy-key), create your SSH 
   uses: peaceiris/actions-gh-pages@v4
   with:
     deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-    publish_dir: ./public
-```
-
-### ⭐️ Set Personal Access Token `personal_token`
-
-[Generate a personal access token (`repo`)](https://github.com/settings/tokens) and add it to Secrets as `PERSONAL_TOKEN`, it works as well as `ACTIONS_DEPLOY_KEY`.
-
-```yaml
-- name: Deploy
-  uses: peaceiris/actions-gh-pages@v4
-  with:
-    personal_token: ${{ secrets.PERSONAL_TOKEN }}
     publish_dir: ./public
 ```
 
@@ -297,8 +293,7 @@ Set `exclude_assets` to empty for including the `.github` directory to deploymen
   uses: peaceiris/actions-gh-pages@v4
   with:
     deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}   # Recommended for this usage
-    # personal_token: ${{ secrets.PERSONAL_TOKEN }} # An alternative
-    # github_token: ${{ secrets.GITHUB_TOKEN }}     # This does not work for this usage
+    # github_token: ${{ secrets.PERSONAL_TOKEN }}   # An alternative
     exclude_assets: ''
 ```
 
@@ -403,10 +398,10 @@ For example:
     publish_dir: ./public
 ```
 
-You can use `deploy_key` or `personal_token`.
+You can use `deploy_key` or `github_token`.
 When you use `deploy_key`, set your private key to the repository which includes this action and set your public key to your external repository.
 
-**Note that `GITHUB_TOKEN` has no permission to access to external repositories. Please create a personal access token and set it to `personal_token` like `personal_token: ${{ secrets.PERSONAL_TOKEN }}`.**
+**Note that the default `GITHUB_TOKEN` has no permission to access external repositories. For this case, create a personal access token and pass it through `github_token`, like `github_token: ${{ secrets.PERSONAL_TOKEN }}`.**
 
 Use case:
 

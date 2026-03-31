@@ -5,15 +5,27 @@ import os from 'os';
 import fs from 'fs';
 import yaml from 'js-yaml';
 
+const DEFAULT_GITHUB_TOKEN = 'test_default_github_token';
+const GITHUB_TOKEN_EXPRESSION = '${{ github.token }}';
+
 beforeEach(() => {
   jest.resetModules();
   process.stdout.write = jest.fn();
+  process.env.GITHUB_TOKEN = DEFAULT_GITHUB_TOKEN;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const doc: any = yaml.load(fs.readFileSync(__dirname + '/../action.yml', 'utf8'));
   Object.keys(doc.inputs).forEach(name => {
     const envVar = `INPUT_${name.replace(/ /g, '_').toUpperCase()}`;
-    process.env[envVar] = doc.inputs[name]['default'];
+    const defaultValue = doc.inputs[name]['default'];
+
+    if (defaultValue === undefined) {
+      delete process.env[envVar];
+      return;
+    }
+
+    process.env[envVar] =
+      defaultValue === GITHUB_TOKEN_EXPRESSION ? process.env.GITHUB_TOKEN || '' : defaultValue;
   });
 });
 
@@ -25,6 +37,7 @@ afterEach(() => {
     console.debug(`delete ${envVar}\t${process.env[envVar]}`);
     delete process.env[envVar];
   });
+  delete process.env.GITHUB_TOKEN;
 });
 
 // Assert that process.stdout.write calls called only with the given arguments.
@@ -82,31 +95,14 @@ describe('showInputs()', () => {
     const test = getInputsLog(authMethod, inps);
     assertWriteCalls([`${test}${os.EOL}`]);
   });
-
-  // eslint-disable-next-line jest/expect-expect
-  test('print all inputs PersonalToken', () => {
-    delete process.env['INPUT_DEPLOY_KEY'];
-    delete process.env['INPUT_GITHUB_TOKEN'];
-    process.env['INPUT_PERSONAL_TOKEN'] = 'test_personal_token';
-
-    const inps: Inputs = getInputs();
-    showInputs(inps);
-
-    const authMethod = 'PersonalToken';
-    const test = getInputsLog(authMethod, inps);
-    assertWriteCalls([`${test}${os.EOL}`]);
-  });
 });
 
 describe('getInputs()', () => {
   test('get default inputs', () => {
-    process.env['INPUT_DEPLOY_KEY'] = 'test_deploy_key';
-
     const inps: Inputs = getInputs();
 
-    expect(inps.DeployKey).toMatch('test_deploy_key');
-    expect(inps.GithubToken).toMatch('');
-    expect(inps.PersonalToken).toMatch('');
+    expect(inps.DeployKey).toMatch('');
+    expect(inps.GithubToken).toMatch(DEFAULT_GITHUB_TOKEN);
     expect(inps.PublishBranch).toMatch('gh-pages');
     expect(inps.PublishDir).toMatch('public');
     expect(inps.DestinationDir).toMatch('');
@@ -126,7 +122,6 @@ describe('getInputs()', () => {
   test('get spec inputs', () => {
     // process.env['INPUT_DEPLOY_KEY'] = 'test_deploy_key';
     process.env['INPUT_GITHUB_TOKEN'] = 'test_github_token';
-    process.env['INPUT_PERSONAL_TOKEN'] = 'test_personal_token';
     process.env['INPUT_PUBLISH_BRANCH'] = 'master';
     process.env['INPUT_PUBLISH_DIR'] = 'out';
     process.env['INPUT_DESTINATION_DIR'] = 'subdir';
@@ -146,7 +141,6 @@ describe('getInputs()', () => {
 
     expect(inps.DeployKey).toMatch('');
     expect(inps.GithubToken).toMatch('test_github_token');
-    expect(inps.PersonalToken).toMatch('test_personal_token');
     expect(inps.PublishBranch).toMatch('master');
     expect(inps.PublishDir).toMatch('out');
     expect(inps.DestinationDir).toMatch('subdir');

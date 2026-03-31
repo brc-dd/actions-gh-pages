@@ -95,7 +95,7 @@ jobs:
         uses: ./
         with:
           # deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # github_token defaults to ${{ github.token }}
           # publish_branch: gh-pages
           publish_dir: ./test_projects/mdbook/book
           # external_repository: ''
@@ -115,7 +115,6 @@ jobs:
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           # github_token: ${{ secrets.GITHUB_TOKEN }}
-          # personal_token: ${{ secrets.PERSONAL_TOKEN }}
           publish_branch: gh-pages-macos
           publish_dir: ./test_projects/mdbook/book
           # external_repository: ''
@@ -134,7 +133,6 @@ jobs:
         with:
           # deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # personal_token: ${{ secrets.PERSONAL_TOKEN }}
           publish_branch: gh-pages-windows
           publish_dir: ./test_projects/mdbook/book
           # external_repository: ''

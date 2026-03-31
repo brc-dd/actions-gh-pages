@@ -35,12 +35,7 @@ export async function run(): Promise<void> {
     if (eventName === 'pull_request' || eventName === 'push') {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const isForkRepository = (context.payload as any).repository.fork;
-      const isSkipOnFork = await skipOnFork(
-        isForkRepository,
-        inps.GithubToken,
-        inps.DeployKey,
-        inps.PersonalToken
-      );
+      const isSkipOnFork = await skipOnFork(isForkRepository, inps.GithubToken, inps.DeployKey);
       if (isSkipOnFork) {
         core.warning('This action runs on a fork and not found auth token, Skip deployment');
         core.setOutput('skip', 'true');

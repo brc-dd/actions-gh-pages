@@ -57,11 +57,10 @@ export async function addCNAME(workDir: string, content: string): Promise<void> 
 export async function skipOnFork(
   isForkRepository: boolean,
   githubToken: string,
-  deployKey: string,
-  personalToken: string
+  deployKey: string
 ): Promise<boolean> {
   if (isForkRepository) {
-    if (githubToken === '' && deployKey === '' && personalToken === '') {
+    if (githubToken === '' && deployKey === '') {
       return true;
     }
   }

@@ -157,27 +157,22 @@ describe('addCNAME()', () => {
 
 describe('skipOnFork()', () => {
   test('return false on upstream', async () => {
-    const test = await skipOnFork(false, 'token', '', '');
+    const test = await skipOnFork(false, 'token', '');
     expect(test).toBeFalsy();
   });
 
   test('return false on fork with github_token', async () => {
-    const test = await skipOnFork(true, 'token', '', '');
+    const test = await skipOnFork(true, 'token', '');
     expect(test).toBeFalsy();
   });
 
   test('return false on fork with deploy_key', async () => {
-    const test = await skipOnFork(true, '', 'deploy_key', '');
-    expect(test).toBeFalsy();
-  });
-
-  test('return false on fork with personal_token', async () => {
-    const test = await skipOnFork(true, '', '', 'personal_token');
+    const test = await skipOnFork(true, '', 'deploy_key');
     expect(test).toBeFalsy();
   });
 
   test('return true on fork with no tokens', async () => {
-    const test = await skipOnFork(true, '', '', '');
+    const test = await skipOnFork(true, '', '');
     expect(test).toBeTruthy();
   });
 });

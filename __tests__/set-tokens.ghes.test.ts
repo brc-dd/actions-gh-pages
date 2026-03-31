@@ -1,4 +1,4 @@
-import {setPersonalToken, setGithubToken} from '../src/set-tokens';
+import {setGithubToken} from '../src/set-tokens';
 
 const OLD_ENV = process.env;
 
@@ -19,19 +19,9 @@ describe('setGithubToken()', () => {
       'GITHUB_TOKEN',
       'owner/repo',
       'gh-pages',
-      '',
       'refs/heads/master',
       'push'
     );
-    expect(test).toMatch(expected);
-  });
-});
-
-describe('setPersonalToken()', () => {
-  test('return remote url with personal access token', () => {
-    process.env.GITHUB_SERVER_URL = 'https://github.enterprise.server';
-    const expected = 'https://x-access-token:pat@github.enterprise.server/owner/repo.git';
-    const test = setPersonalToken('pat', 'owner/repo');
     expect(test).toMatch(expected);
   });
 });

@@ -159,7 +159,6 @@ describe('setRepo()', () => {
       const inps: Inputs = {
         DeployKey: '',
         GithubToken: '',
-        PersonalToken: '',
         PublishBranch: 'gh-pages',
         PublishDir: 'public',
         DestinationDir: 'docs',

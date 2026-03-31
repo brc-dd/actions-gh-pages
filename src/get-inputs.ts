@@ -7,8 +7,6 @@ export function showInputs(inps: Inputs): void {
     authMethod = 'DeployKey';
   } else if (inps.GithubToken) {
     authMethod = 'GithubToken';
-  } else if (inps.PersonalToken) {
-    authMethod = 'PersonalToken';
   }
 
   core.info(`\
@@ -49,7 +47,6 @@ export function getInputs(): Inputs {
   const inps: Inputs = {
     DeployKey: core.getInput('deploy_key'),
     GithubToken: core.getInput('github_token'),
-    PersonalToken: core.getInput('personal_token'),
     PublishBranch: core.getInput('publish_branch'),
     PublishDir: core.getInput('publish_dir'),
     DestinationDir: core.getInput('destination_dir'),

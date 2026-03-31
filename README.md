@@ -452,6 +452,7 @@ A commit is always created with the same user.
 
 Set a custom commit message.
 When we create a commit with a message `docs: Update some post`, a deployment commit will be generated with a message `docs: Update some post ${GITHUB_SHA}`.
+For `pull_request` events, the action uses the pull request head SHA instead of the temporary merge commit SHA.
 
 ```yaml
 - name: Deploy

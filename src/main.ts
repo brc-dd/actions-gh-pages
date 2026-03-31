@@ -5,7 +5,15 @@ import * as github from '@actions/github';
 import {Inputs} from './interfaces';
 import {showInputs, getInputs} from './get-inputs';
 import {setTokens} from './set-tokens';
-import {setRepo, setCommitAuthor, getCommitMessage, commit, push, pushTag} from './git-utils';
+import {
+  setRepo,
+  setCommitAuthor,
+  getCommitMessage,
+  getCommitHash,
+  commit,
+  push,
+  pushTag
+} from './git-utils';
 import {getWorkDirName, addNoJekyll, addCNAME, skipOnFork} from './utils';
 
 export async function run(): Promise<void> {
@@ -70,7 +78,7 @@ export async function run(): Promise<void> {
     core.endGroup();
 
     core.startGroup('Create a commit');
-    const hash = `${process.env.GITHUB_SHA}`;
+    const hash = getCommitHash(context.eventName, context.payload, context.sha);
     const baseRepo = `${github.context.repo.owner}/${github.context.repo.repo}`;
     const commitMessage = getCommitMessage(
       inps.CommitMessage,

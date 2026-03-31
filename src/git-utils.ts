@@ -212,6 +212,28 @@ export function getCommitMessage(
   return subject;
 }
 
+export function getCommitHash(
+  eventName: string,
+  payload: Record<string, unknown>,
+  sha: string
+): string {
+  const pullRequest = payload['pull_request'];
+  const pullRequestHead =
+    pullRequest && typeof pullRequest === 'object'
+      ? (pullRequest as Record<string, unknown>)['head']
+      : undefined;
+  const pullRequestHeadSha =
+    pullRequestHead && typeof pullRequestHead === 'object'
+      ? (pullRequestHead as Record<string, unknown>)['sha']
+      : undefined;
+
+  if (eventName === 'pull_request' && typeof pullRequestHeadSha === 'string') {
+    return pullRequestHeadSha;
+  }
+
+  return sha;
+}
+
 export async function commit(allowEmptyCommit: boolean, msg: string): Promise<void> {
   try {
     if (allowEmptyCommit) {

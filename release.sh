@@ -3,26 +3,15 @@
 # fail on unset variables and command errors
 set -eu -o pipefail # -x: is for debugging
 
-DEFAULT_BRANCH="main"
-
 CURRENT_BRANCH="$(git branch --show-current)"
-if [ "${CURRENT_BRANCH}" != "${DEFAULT_BRANCH}" ]; then
-  echo "$0: Current branch ${CURRENT_BRANCH} is not ${DEFAULT_BRANCH}, continue? (y/n)"
-  read -r res
-  if [ "${res}" = "n" ]; then
-    echo "$0: Stop script"
-    exit 0
-  fi
+if [ -z "${CURRENT_BRANCH}" ]; then
+  echo "$0: Current branch is empty"
+  exit 1
 fi
 
-PRERELEASE_TYPE_LIST="prerelease prepatch preminor premajor"
-if [ "${CURRENT_BRANCH}" != "${DEFAULT_BRANCH}" ]; then
-  RELEASE_TYPE_LIST="${PRERELEASE_TYPE_LIST}"
-else
-  RELEASE_TYPE_LIST="${PRERELEASE_TYPE_LIST} patch minor major"
-fi
+RELEASE_TYPE_LIST="prerelease prepatch preminor premajor patch minor major"
 
-if command -v fzf; then
+if command -v fzf >/dev/null 2>&1; then
   RELEASE_TYPE=$(echo "${RELEASE_TYPE_LIST}" | tr ' ' '\n' | fzf --layout=reverse)
 else
   select sel in ${RELEASE_TYPE_LIST}; do
@@ -38,33 +27,28 @@ if [ "${res}" = "n" ]; then
   exit 0
 fi
 
-git fetch origin
-if [ "${CURRENT_BRANCH}" != "${DEFAULT_BRANCH}" ]; then
-  git pull origin "${CURRENT_BRANCH}"
-else
-  git pull origin ${DEFAULT_BRANCH}
-  git tag -d v3 || true
-  git pull origin --tags
-fi
+git fetch origin --tags --force
+git pull --ff-only origin "${CURRENT_BRANCH}"
 
-npm install
+npm ci
 
-mkdir ./lib
 npm run build
-git add ./lib/index.js
+git add --all ./lib
 git commit -m "chore(release): Add build assets"
 
 npm run release -- --release-as "${RELEASE_TYPE}" --preset eslint
 
-git rm ./lib/index.js
-rm -rf ./lib
+git rm -r --ignore-unmatch ./lib
 git commit -m "chore(release): Remove build assets [skip ci]"
 
-if [ "${CURRENT_BRANCH}" != "${DEFAULT_BRANCH}" ]; then
-  git push origin "${CURRENT_BRANCH}"
-else
-  git push origin ${DEFAULT_BRANCH}
-fi
+git push origin "${CURRENT_BRANCH}"
 
-TAG_NAME="v$(jq -r '.version' ./package.json)"
+TAG_NAME="v$(node -p "require('./package.json').version")"
 git push origin "${TAG_NAME}"
+
+if [[ "${TAG_NAME}" =~ ^v([0-9]+)\.[0-9]+\.[0-9]+$ ]]; then
+  BASE_TAG="v${BASH_REMATCH[1]}"
+  TAG_COMMIT="$(git rev-list -n 1 "${TAG_NAME}")"
+  git tag -fa "${BASE_TAG}" -m "Release ${BASE_TAG}" "${TAG_COMMIT}"
+  git push origin "${BASE_TAG}" --force
+fi

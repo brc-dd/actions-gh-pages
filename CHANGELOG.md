@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [4.3.0](https://github.com/peaceiris/actions-gh-pages/compare/v4.2.0...v4.3.0) (2026-03-31)
+
+
+### fix
+
+* use pull request head SHA in deploy commit messages ([d7de366](https://github.com/peaceiris/actions-gh-pages/commit/d7de366f6bd76ceffadb7c68e3d69601ba6fc6e4))
+
+
+
 # [4.2.0](https://github.com/peaceiris/actions-gh-pages/compare/v4.1.0...v4.2.0) (2026-03-30)
 
 

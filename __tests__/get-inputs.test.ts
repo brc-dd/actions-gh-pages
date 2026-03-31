@@ -47,8 +47,6 @@ function getInputsLog(authMethod: string, inps: Inputs): string {
 [INFO] AllowEmptyCommit: ${inps.AllowEmptyCommit}
 [INFO] KeepFiles: ${inps.KeepFiles}
 [INFO] ForceOrphan: ${inps.ForceOrphan}
-[INFO] UserName: ${inps.UserName}
-[INFO] UserEmail: ${inps.UserEmail}
 [INFO] CommitMessage: ${inps.CommitMessage}
 [INFO] FullCommitMessage: ${inps.FullCommitMessage}
 [INFO] TagName: ${inps.TagName}
@@ -116,8 +114,6 @@ describe('getInputs()', () => {
     expect(inps.AllowEmptyCommit).toBe(false);
     expect(inps.KeepFiles).toBe(false);
     expect(inps.ForceOrphan).toBe(false);
-    expect(inps.UserName).toMatch('');
-    expect(inps.UserEmail).toMatch('');
     expect(inps.CommitMessage).toMatch('');
     expect(inps.FullCommitMessage).toMatch('');
     expect(inps.TagName).toMatch('');
@@ -138,8 +134,6 @@ describe('getInputs()', () => {
     process.env['INPUT_ALLOW_EMPTY_COMMIT'] = 'true';
     process.env['INPUT_KEEP_FILES'] = 'true';
     process.env['INPUT_FORCE_ORPHAN'] = 'true';
-    process.env['INPUT_USER_NAME'] = 'username';
-    process.env['INPUT_USER_EMAIL'] = 'github@github.com';
     process.env['INPUT_COMMIT_MESSAGE'] = 'feat: Add new feature';
     process.env['INPUT_FULL_COMMIT_MESSAGE'] = 'feat: Add new feature';
     process.env['INPUT_TAG_NAME'] = 'deploy-v1.2.3';
@@ -160,8 +154,6 @@ describe('getInputs()', () => {
     expect(inps.AllowEmptyCommit).toBe(true);
     expect(inps.KeepFiles).toBe(true);
     expect(inps.ForceOrphan).toBe(true);
-    expect(inps.UserName).toMatch('username');
-    expect(inps.UserEmail).toMatch('github@github.com');
     expect(inps.CommitMessage).toMatch('feat: Add new feature');
     expect(inps.FullCommitMessage).toMatch('feat: Add new feature');
     expect(inps.TagName).toMatch('deploy-v1.2.3');

@@ -20,8 +20,6 @@ export function showInputs(inps: Inputs): void {
 [INFO] AllowEmptyCommit: ${inps.AllowEmptyCommit}
 [INFO] KeepFiles: ${inps.KeepFiles}
 [INFO] ForceOrphan: ${inps.ForceOrphan}
-[INFO] UserName: ${inps.UserName}
-[INFO] UserEmail: ${inps.UserEmail}
 [INFO] CommitMessage: ${inps.CommitMessage}
 [INFO] FullCommitMessage: ${inps.FullCommitMessage}
 [INFO] TagName: ${inps.TagName}
@@ -59,8 +57,6 @@ export function getInputs(): Inputs {
     AllowEmptyCommit: isBoolean(core.getInput('allow_empty_commit')),
     KeepFiles: isBoolean(core.getInput('keep_files')),
     ForceOrphan: isBoolean(core.getInput('force_orphan')),
-    UserName: core.getInput('user_name'),
-    UserEmail: core.getInput('user_email'),
     CommitMessage: core.getInput('commit_message'),
     FullCommitMessage: core.getInput('full_commit_message'),
     TagName: core.getInput('tag_name'),

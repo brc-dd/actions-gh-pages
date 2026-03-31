@@ -7,7 +7,7 @@ import {showInputs, getInputs} from './get-inputs';
 import {setTokens} from './set-tokens';
 import {
   setRepo,
-  setCommitAuthor,
+  configureCommitter,
   getCommitMessage,
   getCommitHash,
   commit,
@@ -74,7 +74,7 @@ export async function run(): Promise<void> {
     }
     await exec.exec('git', ['remote', 'add', 'origin', remoteURL]);
     await exec.exec('git', ['add', '--all']);
-    await setCommitAuthor(inps.UserName, inps.UserEmail);
+    await configureCommitter();
     core.endGroup();
 
     core.startGroup('Create a commit');

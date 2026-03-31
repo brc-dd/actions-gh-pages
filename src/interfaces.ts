@@ -9,8 +9,6 @@ export interface Inputs {
   readonly AllowEmptyCommit: boolean;
   readonly KeepFiles: boolean;
   readonly ForceOrphan: boolean;
-  readonly UserName: string;
-  readonly UserEmail: string;
   readonly CommitMessage: string;
   readonly FullCommitMessage: string;
   readonly TagName: string;

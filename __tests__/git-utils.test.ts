@@ -1,11 +1,4 @@
-import {
-  copyAssets,
-  setRepo,
-  getUserName,
-  getUserEmail,
-  setCommitAuthor,
-  getCommitMessage
-} from '../src/git-utils';
+import {copyAssets, setRepo, configureCommitter, getCommitMessage} from '../src/git-utils';
 import {getInputs} from '../src/get-inputs';
 import {Inputs} from '../src/interfaces';
 import {getWorkDirName, createDir} from '../src/utils';
@@ -27,17 +20,6 @@ function writeFixtureFile(filePath: string, content: string): void {
   fs.mkdirSync(path.dirname(filePath), {recursive: true});
   fs.writeFileSync(filePath, content);
 }
-
-beforeEach(() => {
-  jest.resetModules();
-  process.env['GITHUB_ACTOR'] = 'default-octocat';
-  process.env['GITHUB_REPOSITORY'] = 'owner/repo';
-});
-
-afterEach(() => {
-  delete process.env['GITHUB_ACTOR'];
-  delete process.env['GITHUB_REPOSITORY'];
-});
 
 describe('copyAssets', () => {
   let gitTempDir = '';
@@ -135,18 +117,6 @@ describe('setRepo()', () => {
     process.env['INPUT_PUBLISH_BRANCH'] = 'gh-pages';
     process.env['INPUT_PUBLISH_DIR'] = 'public';
     process.env['INPUT_DESTINATION_DIR'] = '/subdir';
-    // process.env['INPUT_EXTERNAL_REPOSITORY'] = 'user/repo';
-    // process.env['INPUT_ALLOW_EMPTY_COMMIT'] = 'true';
-    // process.env['INPUT_KEEP_FILES'] = 'true';
-    // process.env['INPUT_FORCE_ORPHAN'] = 'true';
-    // process.env['INPUT_USER_NAME'] = 'username';
-    // process.env['INPUT_USER_EMAIL'] = 'github@github.com';
-    // process.env['INPUT_COMMIT_MESSAGE'] = 'feat: Add new feature';
-    // process.env['INPUT_FULL_COMMIT_MESSAGE'] = 'feat: Add new feature';
-    // process.env['INPUT_TAG_NAME'] = 'deploy-v1.2.3';
-    // process.env['INPUT_TAG_MESSAGE'] = 'Deployment v1.2.3';
-    // process.env['INPUT_DISABLE_NOJEKYLL'] = 'true';
-    // process.env['INPUT_CNAME'] = 'github.com';
     process.env['INPUT_EXCLUDE_ASSETS'] = '.github';
     const inps: Inputs = getInputs();
     const remoteURL = 'https://x-access-token:pat@github.com/actions/pages.git';
@@ -197,8 +167,6 @@ describe('setRepo()', () => {
         AllowEmptyCommit: false,
         KeepFiles: false,
         ForceOrphan: true,
-        UserName: '',
-        UserEmail: '',
         CommitMessage: '',
         FullCommitMessage: '',
         TagName: '',
@@ -228,35 +196,7 @@ describe('setRepo()', () => {
   });
 });
 
-describe('getUserName()', () => {
-  test('get default git user name', () => {
-    const userName = '';
-    const test = getUserName(userName);
-    expect(test).toMatch('default-octocat');
-  });
-
-  test('get custom git user name', () => {
-    const userName = 'custom-octocat';
-    const test = getUserName(userName);
-    expect(test).toMatch(userName);
-  });
-});
-
-describe('getUserEmail()', () => {
-  test('get default git user email', () => {
-    const userEmail = '';
-    const test = getUserEmail(userEmail);
-    expect(test).toMatch('default-octocat@users.noreply.github.com');
-  });
-
-  test('get custom git user email', () => {
-    const userEmail = 'custom-octocat@github.com';
-    const test = getUserEmail(userEmail);
-    expect(test).toMatch(userEmail);
-  });
-});
-
-describe('setCommitAuthor()', () => {
+describe('configureCommitter()', () => {
   let workDirName = '';
   (async (): Promise<void> => {
     const date = new Date();
@@ -270,9 +210,7 @@ describe('setCommitAuthor()', () => {
     await exec.exec('git', ['init']);
   });
 
-  test('get default commit author', async () => {
-    const userName = '';
-    const userEmail = '';
+  test('set GitHub Actions bot committer identity', async () => {
     const result: CmdResult = {
       exitcode: 0,
       output: ''
@@ -284,44 +222,11 @@ describe('setCommitAuthor()', () => {
         }
       }
     };
-    await setCommitAuthor(userName, userEmail);
+    await configureCommitter();
     result.exitcode = await exec.exec('git', ['config', 'user.name'], options);
-    expect(result.output).toMatch('default-octocat');
+    expect(result.output).toMatch('github-actions[bot]');
     result.exitcode = await exec.exec('git', ['config', 'user.email'], options);
-    expect(result.output).toMatch('default-octocat@users.noreply.github.com');
-  });
-
-  test('get custom commit author', async () => {
-    const userName = 'custom-octocat';
-    const userEmail = 'custom-octocat@github.com';
-    const result: CmdResult = {
-      exitcode: 0,
-      output: ''
-    };
-    const options = {
-      listeners: {
-        stdout: (data: Buffer): void => {
-          result.output += data.toString();
-        }
-      }
-    };
-    await setCommitAuthor(userName, userEmail);
-    result.exitcode = await exec.exec('git', ['config', 'user.name'], options);
-    expect(result.output).toMatch(userName);
-    result.exitcode = await exec.exec('git', ['config', 'user.email'], options);
-    expect(result.output).toMatch(userEmail);
-  });
-
-  test('throw error user_email is undefined', async () => {
-    const userName = 'custom-octocat';
-    const userEmail = '';
-    await expect(setCommitAuthor(userName, userEmail)).rejects.toThrow('user_email is undefined');
-  });
-
-  test('throw error user_name is undefined', async () => {
-    const userName = '';
-    const userEmail = 'custom-octocat@github.com';
-    await expect(setCommitAuthor(userName, userEmail)).rejects.toThrow('user_name is undefined');
+    expect(result.output).toMatch('41898282+github-actions[bot]@users.noreply.github.com');
   });
 });
 

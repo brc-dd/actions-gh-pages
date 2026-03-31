@@ -103,7 +103,6 @@ Note that the `GITHUB_TOKEN` that is created by the runner might not inherently 
   - [⭐️ Keeping existing files `keep_files`](#%EF%B8%8F-keeping-existing-files-keep_files)
   - [⭐️ Deploy to external repository `external_repository`](#%EF%B8%8F-deploy-to-external-repository-external_repository)
   - [⭐️ Force orphan `force_orphan`](#%EF%B8%8F-force-orphan-force_orphan)
-  - [⭐️ Set Git username and email](#%EF%B8%8F-set-git-username-and-email)
   - [⭐️ Set custom commit message](#%EF%B8%8F-set-custom-commit-message)
   - [⭐️ Create Git tag](#%EF%B8%8F-create-git-tag)
 - [Tips and FAQ](#tips-and-faq)
@@ -430,23 +429,6 @@ When `destination_dir` is set, files outside that subdirectory on the publish br
     publish_dir: ./public
     force_orphan: true
 ```
-
-### ⭐️ Set Git username and email
-
-Set custom `git config user.name` and `git config user.email`.
-A commit is always created with the same user.
-
-```yaml
-- name: Deploy
-  uses: peaceiris/actions-gh-pages@v4
-  with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    publish_dir: ./public
-    user_name: 'github-actions[bot]'
-    user_email: 'github-actions[bot]@users.noreply.github.com'
-```
-
-<img width="400px" alt="Add GitHub Actions bot as a committer" src="./images/committer_github_actions_bot.jpg">
 
 ### ⭐️ Set custom commit message
 

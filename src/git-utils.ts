@@ -8,6 +8,9 @@ import {Inputs, CmdResult} from './interfaces';
 import {createDir} from './utils';
 import {cp, rm} from 'shelljs';
 
+const GITHUB_ACTIONS_BOT_NAME = 'github-actions[bot]';
+const GITHUB_ACTIONS_BOT_EMAIL = '41898282+github-actions[bot]@users.noreply.github.com';
+
 export async function createBranchForce(branch: string): Promise<void> {
   await exec.exec('git', ['init']);
   await exec.exec('git', ['checkout', '--orphan', branch]);
@@ -157,31 +160,9 @@ export async function setRepo(inps: Inputs, remoteURL: string, workDir: string):
   }
 }
 
-export function getUserName(userName: string): string {
-  if (userName) {
-    return userName;
-  } else {
-    return `${process.env.GITHUB_ACTOR}`;
-  }
-}
-
-export function getUserEmail(userEmail: string): string {
-  if (userEmail) {
-    return userEmail;
-  } else {
-    return `${process.env.GITHUB_ACTOR}@users.noreply.github.com`;
-  }
-}
-
-export async function setCommitAuthor(userName: string, userEmail: string): Promise<void> {
-  if (userName && !userEmail) {
-    throw new Error('user_email is undefined');
-  }
-  if (!userName && userEmail) {
-    throw new Error('user_name is undefined');
-  }
-  await exec.exec('git', ['config', 'user.name', getUserName(userName)]);
-  await exec.exec('git', ['config', 'user.email', getUserEmail(userEmail)]);
+export async function configureCommitter(): Promise<void> {
+  await exec.exec('git', ['config', 'user.name', GITHUB_ACTIONS_BOT_NAME]);
+  await exec.exec('git', ['config', 'user.email', GITHUB_ACTIONS_BOT_EMAIL]);
 }
 
 export function getCommitMessage(

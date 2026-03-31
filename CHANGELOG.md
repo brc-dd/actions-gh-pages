@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [4.5.0](https://github.com/peaceiris/actions-gh-pages/compare/v4.4.0...v4.5.0) (2026-03-31)
+
+
+### feat
+
+* default github_token input to github.token and collapse personal_token into github_token ([de3390c](https://github.com/peaceiris/actions-gh-pages/commit/de3390cbdd0a891a5c5bd853a732c3e10b955e8a))
+
+
+
 # [4.4.0](https://github.com/peaceiris/actions-gh-pages/compare/v4.3.0...v4.4.0) (2026-03-31)
 
 
